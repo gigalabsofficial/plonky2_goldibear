@@ -303,6 +303,25 @@ impl<'de, const N: usize> Deserialize<'de> for BytesHash<N> {
     }
 }
 
+/// Hash consisting of a byte array vec.
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub struct BytesHashVec(pub Vec<BabyBear>);
+
+impl BytesHashVec {
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self(
+            bytes
+                .chunks(3)
+                .map(|bytes| {
+                    let mut arr = [0; 4];
+                    arr[..bytes.len()].copy_from_slice(bytes);
+                    BabyBear::from_canonical_u32(u32::from_le_bytes(arr))
+                })
+                .collect(),
+        )
+    }
+}
+
 mod generic_arrays {
     #[cfg(not(feature = "std"))]
     use alloc::{format, vec::Vec};
