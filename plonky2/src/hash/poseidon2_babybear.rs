@@ -1,6 +1,6 @@
+use alloc::vec::Vec;
 use core::fmt::Debug;
 
-use alloc::vec::Vec;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use fixed_hash::construct_fixed_hash;
 use lazy_static::lazy_static;
@@ -184,7 +184,20 @@ impl<F: RichField> Permuter31 for F {
 // }
 
 /// Poseidon hash function.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, TypeInfo, DecodeWithMemTracking, Decode, MaxEncodedLen, Encode)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    TypeInfo,
+    DecodeWithMemTracking,
+    Decode,
+    MaxEncodedLen,
+    Encode,
+)]
 pub struct Poseidon2BabyBearHash;
 impl<F: RichField> Hasher<F> for Poseidon2BabyBearHash {
     const HASH_SIZE: usize = 4 * 8;
@@ -200,8 +213,8 @@ impl<F: RichField> Hasher<F> for Poseidon2BabyBearHash {
     }
 }
 
-use sp_runtime::traits::Hash as HashT;
 use sp_core::Hasher as HasherT;
+use sp_runtime::traits::Hash as HashT;
 
 impl HasherT for Poseidon2BabyBearHash {
     type Out = sp_core::H256;
@@ -213,28 +226,38 @@ impl HasherT for Poseidon2BabyBearHash {
     fn hash(x: &[u8]) -> Self::Out {
         //log::info!("HASH: {:?}", x);
         //sp_io::hashing::blake2_256(x).into()
-        sp_core::H256::from_slice(Self::hash_no_pad(BytesHashVec::from_bytes(x).0.as_slice()).to_bytes().as_slice())
+        sp_core::H256::from_slice(
+            Self::hash_no_pad(BytesHashVec::from_bytes(x).0.as_slice())
+                .to_bytes()
+                .as_slice(),
+        )
     }
 }
 
 impl HashT for Poseidon2BabyBearHash {
     type Output = sp_core::H256;
-    
-    fn ordered_trie_root(input: Vec<Vec<u8>>, state_version: sp_runtime::StateVersion) -> Self::Output {
+
+    fn ordered_trie_root(
+        input: Vec<Vec<u8>>,
+        state_version: sp_runtime::StateVersion,
+    ) -> Self::Output {
         LayoutV1::<Poseidon2BabyBearHash>::ordered_trie_root(input)
     }
 
-    fn trie_root(input: Vec<(Vec<u8>, Vec<u8>)>, state_version: sp_runtime::StateVersion) -> Self::Output {
+    fn trie_root(
+        input: Vec<(Vec<u8>, Vec<u8>)>,
+        state_version: sp_runtime::StateVersion,
+    ) -> Self::Output {
         LayoutV1::<Poseidon2BabyBearHash>::trie_root(input)
     }
-    
+
     fn hash(s: &[u8]) -> Self::Output {
-            <Self as HasherT>::hash(s)
-        }
-    
+        <Self as HasherT>::hash(s)
+    }
+
     fn hash_of<S: Encode>(s: &S) -> Self::Output {
-            Encode::using_encoded(s, <Self as HasherT>::hash)
-        }
+        Encode::using_encoded(s, <Self as HasherT>::hash)
+    }
 }
 
 impl<F: RichField> AlgebraicHasher<F, 8> for Poseidon2BabyBearHash {
