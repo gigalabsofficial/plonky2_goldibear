@@ -1,8 +1,5 @@
-use alloc::vec::Vec;
 use core::fmt::Debug;
 
-use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use fixed_hash::construct_fixed_hash;
 use lazy_static::lazy_static;
 use p3_baby_bear::{BabyBear, DiffusionMatrixBabyBear};
 use p3_field::{AbstractField, PrimeField64, TwoAdicField};
@@ -10,17 +7,13 @@ use p3_poseidon2;
 use p3_poseidon2::{Poseidon2, Poseidon2ExternalMatrixGeneral};
 use p3_symmetric::Permutation;
 use plonky2_field::types::HasExtension;
-use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
-use sp_trie::{LayoutV1, TrieConfiguration};
 
 use super::hash_types::{HashOut, RichField};
 use super::hashing::{compress, hash_n_to_hash_no_pad, PlonkyPermutation};
 use crate::gates::poseidon2_babybear::Poseidon2BabyBearGate;
-use crate::hash::hash_types::BytesHashVec;
 use crate::iop::target::{BoolTarget, Target};
 use crate::plonk::circuit_builder::CircuitBuilder;
-use crate::plonk::config::{AlgebraicHasher, GenericHashOut, Hasher};
+use crate::plonk::config::{AlgebraicHasher, Hasher};
 
 pub(crate) const HALF_N_FULL_ROUNDS: usize = 4;
 pub(crate) const N_FULL_ROUNDS_TOTAL: usize = 2 * HALF_N_FULL_ROUNDS;
@@ -164,40 +157,9 @@ impl<F: RichField> Permuter31 for F {
             .map(F::from_canonical_u64)
     }
 }
-// construct_fixed_hash! {
-// 	/// Fixed-size uninterpreted hash type with 32 bytes (256 bits) size.
-// 	#[derive(TypeInfo)]
-// 	pub struct Poseidon2BabyBearHashOutput(32);
-// }
-
-// #[derive(
-//     Clone, Encode, Decode, Default, MaxEncodedLen, TypeInfo, DecodeWithMemTracking, PartialOrd, PartialEq, Copy, Debug, Hash
-// )]
-// pub struct Poseidon2BabyBearHashOutput(pub [u8; 32]);
-
-// impl HashOutput for Poseidon2BabyBearHashOutput {
-//     fn from_slice(bytes: &[u8]) -> Self {
-//         let mut array = [0u8; 32];
-//         array.copy_from_slice(&bytes[0..32]);
-//         Poseidon2BabyBearHashOutput(array)
-//     }
-// }
 
 /// Poseidon hash function.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    TypeInfo,
-    DecodeWithMemTracking,
-    Decode,
-    MaxEncodedLen,
-    Encode,
-)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Poseidon2BabyBearHash;
 impl<F: RichField> Hasher<F> for Poseidon2BabyBearHash {
     const HASH_SIZE: usize = 4 * 8;
@@ -210,53 +172,6 @@ impl<F: RichField> Hasher<F> for Poseidon2BabyBearHash {
 
     fn two_to_one(left: Self::Hash, right: Self::Hash) -> Self::Hash {
         compress::<F, Self::Permutation, 8>(left, right)
-    }
-}
-
-use sp_core::Hasher as HasherT;
-use sp_runtime::traits::Hash as HashT;
-
-impl HasherT for Poseidon2BabyBearHash {
-    type Out = sp_core::H256;
-
-    type StdHasher = hash256_std_hasher::Hash256StdHasher;
-
-    const LENGTH: usize = 32;
-
-    fn hash(x: &[u8]) -> Self::Out {
-        //log::info!("HASH: {:?}", x);
-        //sp_io::hashing::blake2_256(x).into()
-        sp_core::H256::from_slice(
-            Self::hash_no_pad(BytesHashVec::from_bytes(x).0.as_slice())
-                .to_bytes()
-                .as_slice(),
-        )
-    }
-}
-
-impl HashT for Poseidon2BabyBearHash {
-    type Output = sp_core::H256;
-
-    fn ordered_trie_root(
-        input: Vec<Vec<u8>>,
-        state_version: sp_runtime::StateVersion,
-    ) -> Self::Output {
-        LayoutV1::<Poseidon2BabyBearHash>::ordered_trie_root(input)
-    }
-
-    fn trie_root(
-        input: Vec<(Vec<u8>, Vec<u8>)>,
-        state_version: sp_runtime::StateVersion,
-    ) -> Self::Output {
-        LayoutV1::<Poseidon2BabyBearHash>::trie_root(input)
-    }
-
-    fn hash(s: &[u8]) -> Self::Output {
-        <Self as HasherT>::hash(s)
-    }
-
-    fn hash_of<S: Encode>(s: &S) -> Self::Output {
-        Encode::using_encoded(s, <Self as HasherT>::hash)
     }
 }
 

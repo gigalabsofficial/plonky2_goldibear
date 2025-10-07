@@ -45,14 +45,6 @@ p3-goldilocks =  { workspace = true }
 p3-baby-bear =  { workspace = true }
 p3-symmetric =  { workspace = true }
 p3-monty-31 =  { workspace = true }
-sp-runtime = { version = "41.1.0", default-features = true }
-codec = { version = "3.7.4", default-features = false, package = "parity-scale-codec", features = ["derive"] }
-scale-info = { version = "2.11.6", default-features = false }
-fixed-hash = {version = "0.8.0"}
-sp-core = {version = "36.1.0"}
-hash256-std-hasher = { version = "0.15.2"}
-sp-io = {version = "40.0.1"}
-sp-trie = {version = "39.1.0"}
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 getrandom = { version = "0.2", default-features = false, features = ["js"] }
